@@ -65,6 +65,7 @@ const AdminUsers = () => {
       supabase
         .from("user_invitations")
         .select("id, email, role, used, deleted, expires_at, created_at")
+        .eq("deleted", false)
         .order("created_at", { ascending: false }),
     ]);
 
