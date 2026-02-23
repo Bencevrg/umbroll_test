@@ -1,21 +1,20 @@
 
 
-## Changes to AdminUsers.tsx
+## Create MFA Save Function Migration
 
-### 1. Filter deleted invitations in fetchData
+### What will be done
+A new database migration file will be created that:
 
-Add `.eq('deleted', false)` to the `user_invitations` query so only non-deleted invitations are fetched.
-
-### 2. Show delete button on all invitations
-
-Currently the delete button in the Meghivok (Invitations) section only appears when `!inv.used`. Change this so the Trash icon is visible on **every** invitation row, regardless of status.
+1. Ensures the `user_id` column in `user_mfa_settings` has a UNIQUE constraint (dropping any existing one first to avoid conflicts).
+2. Creates (or replaces) a `save_mfa_settings` PostgreSQL function that safely inserts or updates MFA settings for the current authenticated user using `ON CONFLICT (user_id)`.
 
 ### Technical Details
 
-**File: `src/pages/AdminUsers.tsx`**
+**New file:** `supabase/migrations/20260223190000_add_mfa_save_function.sql`
 
-- In `fetchData`, the query chain for `user_invitations` will get an additional `.eq('deleted', false)` filter before `.order(...)`.
-- In the invitations table JSX, remove the `{!inv.used && ...}` conditional wrapper around the delete button so it always renders.
+Contains the exact SQL provided:
+- `ALTER TABLE` to add a unique constraint on `user_id`
+- `CREATE OR REPLACE FUNCTION public.save_mfa_settings(...)` as a `SECURITY DEFINER` function using `auth.uid()` to identify the caller
 
-Both changes are small, localized edits -- no new files or dependencies needed.
+No changes to any React/TypeScript files are needed -- this is a standalone database migration.
 
