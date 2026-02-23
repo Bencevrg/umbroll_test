@@ -315,11 +315,9 @@ const AdminUsers = () => {
                       {new Date(inv.expires_at).toLocaleDateString("hu-HU")}
                     </TableCell>
                     <TableCell>
-                      {!inv.used && (
-                        <Button variant="ghost" size="icon" onClick={() => deleteInvitation(inv.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+                      <Button variant="ghost" size="icon" onClick={() => deleteInvitation(inv.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
