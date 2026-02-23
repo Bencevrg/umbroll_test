@@ -12,7 +12,7 @@ const MFAVerify = () => {
   const { user, session, mfaRequired, mfaVerified, setMfaVerified, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const hasSentCode = useRef(false); // Emlékezni fog rá, küldött-e már kódot
+  const hasSentCode = useRef(false);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [mfaType, setMfaType] = useState<string | null>(null);
@@ -27,15 +27,19 @@ const MFAVerify = () => {
       });
   }, [user]);
 
-  // JAVÍTVA: Itt van a React StrictMode elleni védelem!
+  // JAVÍTVA: A sessionStorage használata garantálja, hogy soha nem megy ki dupla email!
   useEffect(() => {
-    if (mfaType === 'email' && !emailSent && user && session) {
-      if (!hasSentCode.current) {
-        hasSentCode.current = true; // Azonnal átbillentjük, így másodszor nem tud belépni
+    if (mfaType === 'email' && user && session) {
+      const codeSentKey = `mfa_sent_${user.id}`;
+      const alreadySentInStorage = sessionStorage.getItem(codeSentKey);
+
+      if (!hasSentCode.current && !alreadySentInStorage) {
+        hasSentCode.current = true;
+        sessionStorage.setItem(codeSentKey, 'true'); // Beírjuk a böngésző memóriájába
         sendEmailCode();
       }
     }
-  }, [mfaType, user, session, emailSent]);
+  }, [mfaType, user, session]);
 
   if (authLoading) {
     return (
@@ -74,7 +78,10 @@ const MFAVerify = () => {
       });
       if (response.error) throw response.error;
       const data = response.data as { verified?: boolean; error?: string };
+      
       if (data.verified) {
+        // Sikeres belépés után kitöröljük a memóriából
+        sessionStorage.removeItem(`mfa_sent_${user!.id}`); 
         setMfaVerified(true);
         navigate('/');
       } else {
@@ -85,6 +92,14 @@ const MFAVerify = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Új kijelentkezés függvény, ami takarít maga után
+  const handleSignOut = async () => {
+    if (user) {
+      sessionStorage.removeItem(`mfa_sent_${user.id}`);
+    }
+    await signOut();
   };
 
   return (
@@ -124,7 +139,7 @@ const MFAVerify = () => {
             </Button>
           )}
 
-          <Button variant="ghost" className="w-full" onClick={signOut}>
+          <Button variant="ghost" className="w-full" onClick={handleSignOut}>
             Kijelentkezés
           </Button>
         </CardContent>
