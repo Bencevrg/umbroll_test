@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // DELETE action
+    // DELETE USER action
     if (action === "delete") {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const { userId } = body;
@@ -127,6 +127,60 @@ Deno.serve(async (req) => {
       // Delete auth user
       const { error: deleteError } = await serviceClient.auth.admin.deleteUser(userId);
       if (deleteError) throw deleteError;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- ÚJ BLOKK: JOGOSULTSÁG MÓDOSÍTÁSA ---
+    if (action === "update") {
+      const { userId, role } = body;
+
+      if (!userId || !role || (role !== "admin" && role !== "user")) {
+        return new Response(JSON.stringify({ error: "Érvénytelen adatok a módosításhoz" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (userId === callerUserId && role === "user") {
+        return new Response(JSON.stringify({ error: "Saját magadtól nem veheted el az admin jogot" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { error: updateError } = await serviceClient
+        .from("user_roles")
+        .update({ role })
+        .eq("user_id", userId);
+
+      if (updateError) throw updateError;
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // --- ÚJ BLOKK: MEGHÍVÓ TÖRLÉSE ---
+    if (action === "deleteInvitation") {
+      const { id } = body;
+      
+      if (!id) {
+        return new Response(JSON.stringify({ error: "Hiányzó meghívó ID" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Átállítjuk a deleted státuszt true-ra az adatbázisban
+      const { error: invError } = await serviceClient
+        .from("user_invitations")
+        .update({ deleted: true })
+        .eq("id", id);
+
+      if (invError) throw invError;
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
