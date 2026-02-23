@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ const MFAVerify = () => {
   const { user, session, mfaRequired, mfaVerified, setMfaVerified, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const hasSentCode = useRef(false); // Emlékezni fog rá, küldött-e már kódot
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [mfaType, setMfaType] = useState<string | null>(null);
@@ -26,12 +27,15 @@ const MFAVerify = () => {
       });
   }, [user]);
 
-  // Send email code when MFA type is email
+  // JAVÍTVA: Itt van a React StrictMode elleni védelem!
   useEffect(() => {
     if (mfaType === 'email' && !emailSent && user && session) {
-      sendEmailCode();
+      if (!hasSentCode.current) {
+        hasSentCode.current = true; // Azonnal átbillentjük, így másodszor nem tud belépni
+        sendEmailCode();
+      }
     }
-  }, [mfaType, user, session]);
+  }, [mfaType, user, session, emailSent]);
 
   if (authLoading) {
     return (
