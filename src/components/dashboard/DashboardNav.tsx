@@ -1,0 +1,67 @@
+import { cn } from '@/lib/utils';
+import { Users, Trophy, AlertTriangle, Moon, BookOpen, MessageCircle, Package, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+
+interface DashboardNavProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+const tabs = [
+  { id: 'partners', label: 'Partnerek', icon: Users },
+  { id: 'best', label: 'Legértékesebb', icon: Trophy },
+  { id: 'worst', label: 'Kevésbé értékesek', icon: AlertTriangle },
+  { id: 'sleeping', label: 'Alvó partnerek', icon: Moon },
+  { id: 'categories', label: 'Árajánlatok kategóriák', icon: Package },
+  { id: 'chat', label: 'Chat', icon: MessageCircle },
+  { id: 'docs', label: 'Leírás', icon: BookOpen },
+];
+
+export const DashboardNav = ({ activeTab, onTabChange }: DashboardNavProps) => {
+  const { role } = useAuth();
+  const navigate = useNavigate();
+
+  return (
+    <nav className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-1 overflow-x-auto py-2">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+          {role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin/users')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all whitespace-nowrap',
+                activeTab === 'admin'
+                  ? 'bg-primary text-primary-foreground shadow-md'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Admin</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
