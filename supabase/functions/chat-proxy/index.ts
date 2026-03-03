@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 const WEBHOOK_URLS: Record<string, string> = {
-  quick: "https://n8n.rl-ai-host01.intra.umbroll.hu/webhook/abbd5cc8-81b1-433d-9d70-52efce34799d",
-  thinking: "https://n8n.rl-ai-host01.intra.umbroll.hu/webhook/42446735-12c9-4175-8c74-533c22d6973f",
+  quick: "https://n8n-hook.rl-ai-host01.intra.umbroll.hu:8448/webhook/abbd5cc8-81b1-433d-9d70-52efce34799d",
+  thinking: "https://n8n-hook.rl-ai-host01.intra.umbroll.hu:8448/webhook/42446735-12c9-4175-8c74-533c22d6973f",
 };
 
 Deno.serve(async (req) => {
