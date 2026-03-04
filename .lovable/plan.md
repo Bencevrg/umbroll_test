@@ -1,20 +1,9 @@
 
+## Update Supabase Environment Secrets Only
 
-## Create MFA Save Function Migration
+Update the two Lovable secrets so the published site connects to the correct Supabase project:
 
-### What will be done
-A new database migration file will be created that:
+- `VITE_SUPABASE_URL` → `https://cmyofethvzjbcldzikyi.supabase.co`
+- `VITE_SUPABASE_ANON_KEY` → `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNteW9mZXRodnpqYmNsZHppa3lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODczNDQsImV4cCI6MjA4NTk2MzM0NH0.t7sRiUCyUMH93eVWp5VjzwR8yeVQkBPRwWqkVEguoGo`
 
-1. Ensures the `user_id` column in `user_mfa_settings` has a UNIQUE constraint (dropping any existing one first to avoid conflicts).
-2. Creates (or replaces) a `save_mfa_settings` PostgreSQL function that safely inserts or updates MFA settings for the current authenticated user using `ON CONFLICT (user_id)`.
-
-### Technical Details
-
-**New file:** `supabase/migrations/20260223190000_add_mfa_save_function.sql`
-
-Contains the exact SQL provided:
-- `ALTER TABLE` to add a unique constraint on `user_id`
-- `CREATE OR REPLACE FUNCTION public.save_mfa_settings(...)` as a `SECURITY DEFINER` function using `auth.uid()` to identify the caller
-
-No changes to any React/TypeScript files are needed -- this is a standalone database migration.
-
+No code files will be changed. The `send-mfa-code/index.ts` nodemailer import is left untouched.
